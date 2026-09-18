@@ -1,0 +1,25 @@
+{
+  "name": "EscalaAI — Escala de Serviço",
+  "short_name": "EscalaAI",
+  "description": "Organize sua escala de serviço semanal e receba avisos dos seus turnos no celular. Relógio ao vivo, tema claro e escuro e funcionamento offline.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "escalaai",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#080b14",
+  "theme_color": "#080b14",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Adicionar turno", "short_name": "Novo turno", "url": "./index.html?action=new" },
+    { "name": "Ver minha semana", "short_name": "Semana", "url": "./index.html?view=semana" }
+  ]
+}

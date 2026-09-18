@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#080b14" id="metaTheme" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="EscalaAI" />
+<meta name="description" content="EscalaAI — organize sua escala de serviço semanal e receba avisos dos seus turnos no celular." />
+<title>EscalaAI — Escala de Serviço</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+:root{
+  --a1:#8b7bff;--a2:#5b7cfa;--a3:#22d3ee;
+  --r:22px;--rb:16px;
+  --bg:#080b14;
+  --glass:rgba(10,14,25,.72);
+  --surface:rgba(255,255,255,.05);
+  --surface2:rgba(255,255,255,.085);
+  --solid:#101728;
+  --border:rgba(255,255,255,.10);
+  --text:#eaeefb;--muted:#93a0bd;
+  --shadow:0 22px 50px rgba(0,0,0,.5);
+  --track:rgba(255,255,255,.06);
+  --ok:#34d399;--warn:#fbbf24;--danger:#fb7185;
+}
+html[data-theme="light"]{
+  --bg:#eceff8;
+  --glass:rgba(255,255,255,.78);
+  --surface:rgba(255,255,255,.78);
+  --surface2:#ffffff;
+  --solid:#ffffff;
+  --border:rgba(16,23,40,.10);
+  --text:#0f1729;--muted:#5d6b88;
+  --shadow:0 18px 40px rgba(24,40,90,.14);
+  --track:rgba(16,23,40,.055);
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  transition:background .35s ease,color .35s ease;
+  overflow-x:hidden;
+}
+body::before,body::after{
+  content:"";position:fixed;z-index:0;border-radius:50%;filter:blur(70px);pointer-events:none;
+}
+body::before{width:60vw;height:60vw;max-width:420px;max-height:420px;top:-16vw;left:-18vw;background:radial-gradient(circle,rgba(139,123,255,.55),transparent 70%)}
+body::after{width:66vw;height:66vw;max-width:460px;max-height:460px;top:24vh;right:-24vw;background:radial-gradient(circle,rgba(34,211,238,.38),transparent 70%)}
+html[data-theme="light"] body::before{background:radial-gradient(circle,rgba(139,123,255,.42),transparent 70%)}
+html[data-theme="light"] body::after{background:radial-gradient(circle,rgba(34,211,238,.4),transparent 70%)}
+.app{position:relative;z-index:1;width:100%;max-width:540px;margin:0 auto;padding:0 16px 118px}
+.grad{background:linear-gradient(100deg,var(--a1),var(--a3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:30;padding:calc(env(safe-area-inset-top) + 12px) 0 14px;margin:0 -16px;padding-left:16px;padding-right:16px;
+  background:var(--glass);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--border)}
+.header__top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand__mark{display:grid;place-items:center;filter:drop-shadow(0 8px 18px rgba(91,124,250,.45))}
+.brand__name{font-size:1.16rem;font-weight:800;letter-spacing:-.02em}
+.clock{margin-top:12px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.clock__time{font-size:clamp(2.05rem,10.5vw,2.75rem);font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;
+  background:linear-gradient(100deg,var(--a1),var(--a3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.clock__side{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.clock__date{font-size:.74rem;color:var(--muted);text-transform:capitalize}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:600;padding:5px 10px;border-radius:999px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.pill.live{color:#0a1020;background:linear-gradient(100deg,var(--a1),var(--a3));border-color:transparent}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+
+/* BUTTONS */
+.icon-btn{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;cursor:pointer;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);transition:transform .18s ease,background .2s}
+.icon-btn:active{transform:scale(.93)}
+.btn{border:0;cursor:pointer;font:inherit;font-weight:700;font-size:.9rem;padding:13px 18px;border-radius:15px;
+  background:var(--track);color:var(--text);border:1px solid var(--border);transition:transform .18s,filter .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,var(--a3));color:#060b16;border-color:transparent;box-shadow:0 12px 28px rgba(91,124,250,.38)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.09)}
+.btn.small{padding:9px 13px;font-size:.8rem;border-radius:12px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+
+/* CARDS / VIEWS */
+section.view{display:none;animation:fade .3s ease}
+section.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view__title{font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:22px 4px 10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h3{margin:0 0 4px;font-size:1rem;letter-spacing:-.01em}
+.card p{margin:0;font-size:.82rem;color:var(--muted);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 130px}
+.mt{margin-top:12px}
+
+/* DAY CARD */
+.day{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:10px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .18s}
+.day.is-today{border-color:transparent;background:
+  linear-gradient(var(--surface),var(--surface)) padding-box,
+  linear-gradient(100deg,var(--a1),var(--a3)) border-box;border:1.6px solid transparent}
+.day__head{display:flex;align-items:center;gap:8px;font-size:.86rem;font-weight:700}
+.day__name em{font-style:normal;font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--a3);margin-left:6px}
+.day__date{margin-left:auto;font-size:.74rem;color:var(--muted);font-weight:600}
+.day__total{font-size:.68rem;font-weight:800;color:var(--muted);background:var(--track);padding:4px 9px;border-radius:999px}
+.day__shifts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.empty{margin:0;font-size:.78rem;color:var(--muted);opacity:.75;font-style:italic}
+.shift{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--text);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%);
+  border:1px solid var(--border);border-left:4px solid var(--c);border-radius:14px;padding:11px 12px;transition:transform .16s}
+.shift:active{transform:scale(.985)}
+.shift b{font-size:.9rem;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.shift span{font-size:.72rem;color:var(--muted);font-weight:600;margin-left:auto}
+.shift i{font-style:normal;font-size:.68rem;font-weight:800;background:var(--track);padding:3px 8px;border-radius:999px;color:var(--muted)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rb);padding:13px 12px;text-align:center}
+.stat b{display:block;font-size:1.28rem;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:.66rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+
+/* SETTINGS */
+.field{display:block;margin-top:12px}
+.field>span{display:block;font-size:.74rem;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:.03em}
+input[type=time],input[type=text],select{width:100%;font:inherit;font-size:1rem;color:var(--text);background:var(--track);
+  border:1px solid var(--border);border-radius:14px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--a2);box-shadow:0 0 0 3px rgba(34,211,238,.16)}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 22px,calc(100% - 14px) 22px;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:38px}
+.seg{display:flex;gap:6px;background:var(--track);padding:5px;border-radius:15px;border:1px solid var(--border)}
+.seg button{flex:1;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:.8rem;padding:10px 4px;border-radius:11px;background:transparent;color:var(--muted)}
+.seg button.on{background:linear-gradient(100deg,var(--a1),var(--a3));color:#060b16}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.switch span{font-size:.86rem;font-weight:600}
+.tg{width:50px;height:29px;border-radius:999px;border:1px solid var(--border);background:var(--track);position:relative;cursor:pointer;flex:0 0 auto}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:var(--muted);transition:.22s}
+.tg.on{background:linear-gradient(100deg,var(--a1),var(--a3));border-color:transparent}
+.tg.on::after{left:24px;background:#fff}
+
+/* TABBAR + FAB */
+.tabbar{position:fixed;z-index:40;bottom:calc(env(safe-area-inset-bottom) + 10px);left:50%;transform:translateX(-50%);
+  width:min(508px,calc(100% - 24px));display:flex;gap:4px;padding:7px;border-radius:22px;
+  background:var(--glass);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--border);box-shadow:var(--shadow)}
+.tabbar button{flex:1;border:0;background:transparent;cursor:pointer;font:inherit;font-size:.66rem;font-weight:800;letter-spacing:.02em;
+  color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 2px;border-radius:16px;transition:color .2s}
+.tabbar button svg{width:21px;height:21px}
+.tabbar button.on{color:var(--text);background:var(--surface2)}
+.tabbar button.on svg{color:var(--a3)}
+.fab{position:fixed;z-index:45;right:calc(50% - min(254px,50vw) + 6px);bottom:calc(env(safe-area-inset-bottom) + 86px);
+  width:60px;height:60px;border-radius:20px;border:0;cursor:pointer;color:#060b16;
+  background:linear-gradient(130deg,var(--a1),var(--a2) 55%,var(--a3));box-shadow:0 16px 34px rgba(91,124,250,.45);
+  display:grid;place-items:center;transition:transform .18s}
+.fab:active{transform:scale(.92)}
+
+/* SHEET */
+.sheet{position:fixed;inset:0;z-index:60;display:none}
+.sheet.open{display:block}
+.sheet__bd{position:absolute;inset:0;background:rgba(4,7,15,.62);backdrop-filter:blur(4px)}
+.sheet__panel{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:540px;max-height:92vh;overflow:auto;
+  background:var(--solid);border:1px solid var(--border);border-bottom:0;border-radius:26px 26px 0 0;
+  padding:8px 18px calc(env(safe-area-inset-bottom) + 22px);animation:up .3s cubic-bezier(.2,.9,.2,1);box-shadow:var(--shadow)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.sheet__grip{width:44px;height:5px;border-radius:99px;background:var(--border);margin:6px auto 14px}
+.sheet h2{margin:0 0 4px;font-size:1.14rem;letter-spacing:-.02em}
+.sheet .hint{font-size:.78rem;color:var(--muted);margin:0 0 6px}
+.sheet .row{margin-top:16px}
+
+/* TOAST */
+.toast{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom) + 150px);transform:translate(-50%,20px);
+  background:var(--solid);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--text);
+  padding:12px 16px;border-radius:14px;font-size:.82rem;font-weight:600;opacity:0;transition:.28s;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.note{font-size:.74rem;color:var(--muted);line-height:1.55}
+ul.tips{margin:8px 0 0;padding-left:18px;font-size:.76rem;color:var(--muted);line-height:1.6}
+.ver{font-size:.7rem;color:var(--muted);text-align:center;margin:18px 0 4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="header__top">
+      <div class="brand">
+        <span class="brand__mark">
+          <svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true">
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#9b8cff"/><stop offset=".52" stop-color="#5b7cfa"/><stop offset="1" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+            <rect x="1.5" y="1.5" width="45" height="45" rx="14.5" fill="url(#lg)"/>
+            <circle cx="24" cy="25" r="10.4" fill="none" stroke="#07101f" stroke-width="3" opacity=".9"/>
+            <path d="M24 18.6V25l5.4 3.4" fill="none" stroke="#07101f" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+            <rect x="10.5" y="31.5" width="3.6" height="6.4" rx="1.8" fill="#07101f" opacity=".85"/>
+            <rect x="17.5" y="29" width="3.6" height="8.9" rx="1.8" fill="#07101f" opacity=".85"/>
+            <rect x="33.8" y="31.5" width="3.6" height="6.4" rx="1.8" fill="#07101f" opacity=".85"/>
+            <circle cx="34.4" cy="13.6" r="2.5" fill="#07101f" opacity=".95"/>
+          </svg>
+        </span>
+        <span class="brand__name">Escala<span class="grad">AI</span></span>
+      </div>
+      <button class="icon-btn" id="themeBtn" title="Alternar tema" aria-label="Alternar tema claro/escuro">
+        <svg id="themeIcon" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+    </div>
+    <div class="clock">
+      <div class="clock__time" id="clockTime">--:--:--</div>
+      <div class="clock__side">
+        <span class="clock__date" id="clockDate">—</span>
+        <span class="pill" id="clockNext"><span class="dot"></span>Carregando…</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- SEMANA -->
+    <section class="view active" id="view-semana">
+      <h2 class="view__title">Sua semana</h2>
+      <div class="stats">
+        <div class="stat"><b id="stHours">0h</b><span>Horas</span></div>
+        <div class="stat"><b id="stShifts">0</b><span>Turnos</span></div>
+        <div class="stat"><b id="stFree">7</b><span>Folgas</span></div>
+      </div>
+      <div id="weekList"></div>
+      <div class="card" id="weekEmpty" hidden>
+        <h3>Nenhum turno cadastrado</h3>
+        <p class="note">Toque no botão <b>+</b> para lançar seu primeiro turno ou carregue uma semana de exemplo para testar o app.</p>
+        <div class="row mt">
+          <button class="btn primary" id="btnAddFirst">Adicionar turno</button>
+          <button class="btn ghost" id="btnSample">Carregar exemplo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TURNOS -->
+    <section class="view" id="view-turnos">
+      <h2 class="view__title">Todos os turnos</h2>
+      <div id="shiftsList"></div>
+      <div class="card" id="shiftsEmpty" hidden>
+        <p class="note">Você ainda não tem turnos. Use o botão <b>+</b> para criar.</p>
+      </div>
+      <div class="card">
+        <h3>Resumo semanal</h3>
+        <p id="summaryTxt" class="note">—</p>
+      </div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section class="view" id="view-ajustes">
+      <h2 class="view__title">Avisos de turno</h2>
+      <div class="card">
+        <h3>Notificações no celular</h3>
+        <p class="note" id="permTxt">Verificando permissão…</p>
+        <div class="switch">
+          <span>Avisar sobre meus turnos</span>
+          <div class="tg" id="tgNotif" role="switch" aria-label="Ativar avisos"></div>
+        </div>
+        <label class="field"><span>Antecedência do aviso</span>
+          <select id="selOffset">
+            <option value="5">5 minutos antes</option>
+            <option value="10">10 minutos antes</option>
+            <option value="15">15 minutos antes</option>
+            <option value="30">30 minutos antes</option>
+            <option value="45">45 minutos antes</option>
+            <option value="60">1 hora antes</option>
+          </select>
+        </label>
+        <div class="switch">
+          <span>Também avisar no início do turno</span>
+          <div class="tg" id="tgStart" role="switch" aria-label="Avisar no início"></div>
+        </div>
+        <div class="row mt">
+          <button class="btn primary" id="btnTest">Enviar aviso de teste</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Como os avisos funcionam</h3>
+        <ul class="tips">
+          <li>Os avisos são <b>locais</b>, agendados pelo próprio app no seu aparelho — não precisa de servidor nem de conta.</li>
+          <li>No <b>Android/Chrome</b> funcionam com o app aberto ou em segundo plano (com a aba viva).</li>
+          <li>No <b>iPhone (iOS 16.4+)</b> os avisos só funcionam depois de <b>Adicionar à Tela de Início</b> e abrir o app por esse ícone.</li>
+          <li>Se o app ficar totalmente fechado por horas, o sistema pode pausar os agendamentos — abra o app 1x ao dia para reagendar.</li>
+        </ul>
+      </div>
+
+      <h2 class="view__title">Aparência</h2>
+      <div class="card">
+        <h3>Tema</h3>
+        <p class="note">Escolha claro, escuro ou acompanhe o sistema.</p>
+        <div class="seg mt" id="segTheme">
+          <button data-mode="light">Claro</button>
+          <button data-mode="dark">Escuro</button>
+          <button data-mode="auto">Sistema</button>
+        </div>
+      </div>
+
+      <h2 class="view__title">Seus dados</h2>
+      <div class="card">
+        <h3>Backup da escala</h3>
+        <p class="note">Tudo fica salvo apenas no seu aparelho. Exporte um arquivo para não perder nada.</p>
+        <div class="row mt">
+          <button class="btn primary" id="btnExport">Exportar</button>
+          <button class="btn" id="btnImport">Importar</button>
+          <button class="btn danger" id="btnClear">Apagar tudo</button>
+        </div>
+        <input type="file" id="fileImport" accept="application/json" hidden />
+      </div>
+
+      <div class="card">
+        <h3>Instalar o EscalaAI</h3>
+        <p class="note" id="installTxt">Para usar como app: no Android toque em ⋮ → "Instalar app". No iPhone toque em Compartilhar → "Adicionar à Tela de Início".</p>
+        <div class="row mt">
+          <button class="btn primary" id="btnInstall" hidden>Instalar app</button>
+        </div>
+      </div>
+      <p class="ver">EscalaAI v1.0 · PWA offline · dados no seu aparelho</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="on" data-view="semana">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      Semana</button>
+    <button data-view="turnos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3.5 2"/><circle cx="12" cy="12" r="8.5"/></svg>
+      Turnos</button>
+    <button data-view="ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10.3 19a2 2 0 0 0 3.4 0"/></svg>
+      Ajustes</button>
+  </nav>
+
+  <button class="fab" id="fabAdd" aria-label="Adicionar turno">
+    <svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
+<!-- SHEET: formulário de turno -->
+<div class="sheet" id="sheet">
+  <div class="sheet__bd" data-close></div>
+  <div class="sheet__panel">
+    <div class="sheet__grip"></div>
+    <h2 id="sheetTitle">Novo turno</h2>
+    <p class="hint">Dia, horário e um rótulo para identificar o plantão.</p>
+    <form id="shiftForm" autocomplete="off">
+      <label class="field"><span>Dia da semana</span>
+        <select id="fDay"></select>
+      </label>
+      <div class="row">
+        <label class="field"><span>Início</span><input type="time" id="fStart" value="08:00" required /></label>
+        <label class="field"><span>Fim</span><input type="time" id="fEnd" value="17:00" required /></label>
+      </div>
+      <label class="field"><span>Rótulo (opcional)</span><input type="text" id="fLabel" placeholder="Ex.: Turno A · UTI" /></label>
+      <label class="field"><span>Observação (opcional)</span><input type="text" id="fNote" placeholder="Ex.: levar crachá e carimbo" /></label>
+      <div class="row mt">
+        <button type="submit" class="btn primary">Salvar turno</button>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+      </div>
+      <div class="row mt">
+        <button type="button" class="btn danger" id="fDelete" hidden>Excluir turno</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   EscalaAI — lógica do app (escala semanal + avisos locais)
+   Tudo roda no aparelho. Sem servidor, sem conta.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var KEY = 'escalaai.v1';
+  var DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  var SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  var MON = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  var ORDER = [1, 2, 3, 4, 5, 6, 0];
+  var PALETTE = ['#8b7bff', '#22d3ee', '#34d399', '#fbbf24', '#fb7185', '#60a5fa', '#f472b6', '#a3e635'];
+
+  var state = {
+    shifts: [],
+    settings: { notify: true, offset: 30, startAlert: true, theme: 'dark' }
+  };
+
+  /* ---------- utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.shifts)) state.shifts = d.shifts.filter(isValidShift);
+      if (d && d.settings) state.settings = Object.assign(state.settings, d.settings);
+    } catch (e) { /* dados corrompidos -> começa limpo */ }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('Não foi possível salvar no aparelho.'); }
+  }
+  function isValidShift(s) {
+    return s && typeof s.day === 'number' && /^\d{1,2}:\d{2}$/.test(s.start || '') && /^\d{1,2}:\d{2}$/.test(s.end || '');
+  }
+  function uid() { return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function toMin(hhmm) { var p = String(hhmm).split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  function durMin(s) { var d = toMin(s.end) - toMin(s.start); if (d <= 0) d += 1440; return d; }
+  function fmtDur(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    return h + 'h' + (m ? pad(m) : '');
+  }
+  function label(s) { return s.label ? s.label : 'Turno'; }
+  function colorOf(s) {
+    if (s.color) return s.color;
+    var t = String(s.label || 'turno').toLowerCase(), h = 0;
+    for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) % 9973;
+    return PALETTE[h % PALETTE.length];
+  }
+  function toast(msg) {
+    var t = $('toast');
+    if (!t) { t = document.createElement('div'); t.className = 'toast'; t.id = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+  function startOfWeek(d) { // segunda-feira
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var wd = x.getDay(); var diff = (wd === 0 ? -6 : 1 - wd);
+    x.setDate(x.getDate() + diff); return x;
+  }
+  function dateForDay(day) {
+    var mon = startOfWeek(new Date());
+    var off = (day === 0 ? 6 : day - 1);
+    return new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + off);
+  }
+  function sortShifts(list) {
+    return list.slice().sort(function (a, b) {
+      var da = (a.day === 0 ? 7 : a.day), db = (b.day === 0 ? 7 : b.day);
+      if (da !== db) return da - db;
+      return toMin(a.start) - toMin(b.start);
+    });
+  }
+
+  /* ---------- tema ---------- */
+  function applyTheme() {
+    var mode = state.settings.theme || 'dark';
+    var dark = mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    var meta = $('metaTheme'); if (meta) meta.setAttribute('content', dark ? '#080b14' : '#eceff8');
+    var ic = $('themeIcon');
+    if (ic) {
+      ic.innerHTML = dark
+        ? '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.9 1.9M16.7 16.7l1.9 1.9M18.6 5.4l-1.9 1.9M7.3 16.7l-1.9 1.9"/>'
+        : '<path d="M20 14.4A8.6 8.6 0 0 1 9.6 4 8.6 8.6 0 1 0 20 14.4z"/>';
+    }
+    var seg = $('segTheme');
+    if (seg) Array.prototype.forEach.call(seg.children, function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
+  }
+  function setTheme(mode) { state.settings.theme = mode; save(); applyTheme(); }
+
+  /* ---------- relógio fixo no cabeçalho ---------- */
+  function tickClock() {
+    var now = new Date();
+    var t = $('clockTime');
+    if (t) t.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    var d = $('clockDate');
+    if (d) d.textContent = SHORT[now.getDay()] + ', ' + now.getDate() + ' de ' + MON[now.getMonth()];
+    renderNextPill(now);
+  }
+
+  function nextOccurrence(s, from) {
+    var base = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    for (var k = 0; k < 8; k++) {
+      var cand = new Date(base.getFullYear(), base.getMonth(), base.getDate() + k);
+      if (cand.getDay() !== s.day) continue;
+      var hh = String(s.start).split(':');
+      cand.setHours(+hh[0], +hh[1], 0, 0);
+      if (cand.getTime() > from.getTime()) return cand;
+    }
+    return null;
+  }
+  function renderNextPill(now) {
+    var el = $('clockNext'); if (!el) return;
+    now = now || new Date();
+    var best = null;
+    state.shifts.forEach(function (s) {
+      var at = nextOccurrence(s, now);
+      if (at && (!best || at < best.at)) best = { at: at, s: s };
+    });
+    if (!best) { el.className = 'pill'; el.innerHTML = '<span class="dot"></span>Sem turnos futuros'; return; }
+    var ms = best.at - now, mins = Math.round(ms / 60000);
+    var txt = mins < 60 ? 'em ' + mins + ' min' : (mins < 1440 ? 'em ' + Math.floor(mins / 60) + 'h' + pad(mins % 60) : 'em ' + Math.round(mins / 1440) + ' dia(s)');
+    if (mins <= 90) el.className = 'pill live'; else el.className = 'pill';
+    el.innerHTML = '<span class="dot"></span>' + label(best.s) + ' · ' + txt;
+  }
+
+  /* ---------- render: semana ---------- */
+  function renderWeek() {
+    var box = $('weekList'), now = new Date();
+    box.innerHTML = '';
+    var totals = 0, count = 0, free = 0;
+
+    ORDER.forEach(function (day) {
+      var items = sortShifts(state.shifts.filter(function (s) { return s.day === day; }));
+      var sum = items.reduce(function (a, s) { return a + durMin(s); }, 0);
+      totals += sum; count += items.length; if (!items.length) free++;
+      var dt = dateForDay(day);
+      var isToday = dt.toDateString() === now.toDateString();
+
+      var card = document.createElement('div');
+      card.className = 'day' + (isToday ? ' is-today' : '');
+      var head = '<div class="day__head"><span class="day__name">' + DAYS[day] + (isToday ? '<em>hoje</em>' : '') +
+        '</span><span class="day__date">' + pad(dt.getDate()) + '/' + pad(dt.getMonth() + 1) + '</span>' +
+        '<span class="day__total">' + (sum ? fmtDur(sum) : 'folga') + '</span></div>';
+
+      var body = items.length
+        ? '<div class="day__shifts">' + items.map(function (s) {
+            var c = colorOf(s);
+            return '<button class="shift" data-id="' + s.id + '" style="--c:' + c + '">' +
+              '<b>' + s.start + '–' + s.end + '</b><span>' + fmtDur(durMin(s)) + '</span><i>' + escapeHtml(label(s)) + '</i></button>';
+          }).join('') + '</div>'
+        : '<p class="empty">Sem turno lançado neste dia.</p>';
+
+      card.innerHTML = head + body;
+      box.appendChild(card);
+    });
+
+    $('stHours').textContent = fmtDur(totals) || '0h';
+    $('stShifts').textContent = String(count);
+    $('stFree').textContent = String(free);
+    $('weekEmpty').hidden = state.shifts.length > 0;
+    box.hidden = state.shifts.length === 0;
+
+    box.querySelectorAll('.shift').forEach(function (b) {
+      b.addEventListener('click', function () { openSheet(b.dataset.id); });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* ---------- render: turnos ---------- */
+  function renderShifts() {
+    var box = $('shiftsList');
+    box.innerHTML = '';
+    var list = sortShifts(state.shifts);
+    $('shiftsEmpty').hidden = list.length > 0;
+    list.forEach(function (s) {
+      var c = colorOf(s);
+      var el = document.createElement('div');
+      el.className = 'day';
+      el.innerHTML = '<div class="day__head"><span class="day__name">' + DAYS[s.day] +
+        '</span><span class="day__date">' + s.start + '–' + s.end + '</span>' +
+        '<span class="day__total">' + fmtDur(durMin(s)) + '</span></div>' +
+        '<div class="day__shifts"><button class="shift" data-id="' + s.id + '" style="--c:' + c + '">' +
+        '<b>' + escapeHtml(label(s)) + '</b><span>' + (s.note ? escapeHtml(s.note) : '') + '</span>' +
+        '<i>editar</i></button></div>';
+      box.appendChild(el);
+    });
+    box.querySelectorAll('.shift').forEach(function (b) {
+      b.addEventListener('click', function () { openSheet(b.dataset.id); });
+    });
+
+    var mins = state.shifts.reduce(function (a, s) { return a + durMin(s); }, 0);
+    var perDay = {};
+    state.shifts.forEach(function (s) { perDay[s.day] = (perDay[s.day] || 0) + durMin(s); });
+    var bestDay = Object.keys(perDay).sort(function (a, b) { return perDay[b] - perDay[a]; })[0];
+    $('summaryTxt').innerHTML = state.shifts.length
+      ? 'Você tem <b>' + state.shifts.length + ' turno(s)</b> somando <b>' + fmtDur(mins) + '</b> por semana' +
+        (bestDay !== undefined ? ' · dia mais cheio: <b>' + DAYS[bestDay] + '</b> (' + fmtDur(perDay[bestDay]) + ')' : '') +
+        ' · média de ' + fmtDur(Math.round(mins / 7)) + '/dia.'
+      : 'Nenhum turno lançado ainda.';
+  }
+
+  /* ---------- abas ---------- */
+  function showTab(name) {
+    document.querySelectorAll('section.view').forEach(function (v) {
+      v.classList.toggle('active', v.id === 'view-' + name);
+    });
+    document.querySelectorAll('#tabbar button').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.view === name);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ---------- sheet (novo/editar turno) ---------- */
+  var editingId = null;
+  function fillDays() {
+    var sel = $('fDay'); sel.innerHTML = '';
+    ORDER.forEach(function (d) {
+      var o = document.createElement('option'); o.value = d; o.textContent = DAYS[d]; sel.appendChild(o);
+    });
+  }
+  function openSheet(id) {
+    editingId = id || null;
+    var s = id ? state.shifts.filter(function (x) { return x.id === id; })[0] : null;
+    $('sheetTitle').textContent = s ? 'Editar turno' : 'Novo turno';
+    $('fDay').value = s ? s.day : new Date().getDay();
+    $('fStart').value = s ? s.start : '08:00';
+    $('fEnd').value = s ? s.end : '17:00';
+    $('fLabel').value = s && s.label ? s.label : '';
+    $('fNote').value = s && s.note ? s.note : '';
+    $('fDelete').hidden = !s;
+    $('sheet').classList.add('open');
+  }
+  function closeSheet() { $('sheet').classList.remove('open'); editingId = null; }
+
+  $('shiftForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var data = {
+      day: +$('fDay').value,
+      start: $('fStart').value,
+      end: $('fEnd').value,
+      label: $('fLabel').value.trim(),
+      note: $('fNote').value.trim()
+    };
+    if (!data.start || !data.end) { toast('Preencha início e fim.'); return; }
+    if (data.start === data.end) { toast('Início e fim iguais — vou considerar 24h.'); }
+    if (editingId) {
+      state.shifts = state.shifts.map(function (s) { return s.id === editingId ? Object.assign(s, data) : s; });
+      toast('Turno atualizado.');
+    } else {
+      data.id = uid(); state.shifts.push(data); toast('Turno lançado. Avisos reagendados.');
+    }
+    save(); renderAll(); closeSheet();
+  });
+  $('fDelete').addEventListener('click', function () {
+    if (!editingId) return;
+    state.shifts = state.shifts.filter(function (s) { return s.id !== editingId; });
+    save(); renderAll(); closeSheet(); toast('Turno excluído.');
+  });
+
+  /* ---------- notificações ---------- */
+  function permState() {
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission; // granted | denied | default
+  }
+  function renderPerm() {
+    var p = permState(), el = $('permTxt'), tg = $('tgNotif');
+    el.innerHTML =
+      p === 'unsupported' ? 'Este navegador não oferece avisos. Instale o app na tela de início para tentar novamente.' :
+      p === 'granted' ? '✅ Avisos permitidos neste aparelho.' :
+      p === 'denied' ? '⛔ Avisos bloqueados. Abra as configurações do site no navegador e permita notificações.' :
+      'Toque no botão abaixo para permitir os avisos de turno.';
+    tg.classList.toggle('on', !!state.settings.notify);
+    $('selOffset').value = String(state.settings.offset);
+    $('tgStart').classList.toggle('on', !!state.settings.startAlert);
+  }
+  function requestPerm() {
+    if (!('Notification' in window)) { toast('Navegador sem suporte a avisos.'); return; }
+    Notification.requestPermission().then(function () { renderPerm(); schedule(); });
+  }
+  $('tgNotif').addEventListener('click', function () {
+    state.settings.notify = !state.settings.notify; save();
+    if (state.settings.notify && permState() === 'default') requestPerm(); else { renderPerm(); schedule(); }
+  });
+  $('selOffset').addEventListener('change', function () {
+    state.settings.offset = +this.value; save(); schedule(); toast('Vou avisar ' + this.value + ' min antes.');
+  });
+  $('tgStart').addEventListener('click', function () {
+    state.settings.startAlert = !state.settings.startAlert; save(); schedule(); renderPerm();
+  });
+  $('btnTest').addEventListener('click', function () {
+    if (permState() !== 'granted') { requestPerm(); toast('Permita os avisos e toque de novo.'); return; }
+    fire('EscalaAI', 'Aviso de teste: seus lembretes de turno estão ativos.', 'teste');
+    toast('Aviso de teste enviado.');
+  });
+
+  function fire(title, body, tag) {
+    if (permState() !== 'granted') return;
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(function (reg) {
+        reg.showNotification(title, {
+          body: body, icon: './icons/icon-192.png', badge: './icons/icon-192.png',
+          tag: tag || 'escalaai', renotify: true, vibrate: [90, 50, 90], data: { url: './index.html' }
+        });
+      }).catch(function () { try { new Notification(title, { body: body, icon: './icons/icon-192.png' }); } catch (e) {} });
+    } else {
+      try { new Notification(title, { body: body, icon: './icons/icon-192.png' }); } catch (e) {}
+    }
+  }
+  function firedKey() { return 'escalaai.fired'; }
+  function hasFired(k) {
+    try { var a = JSON.parse(localStorage.getItem(firedKey()) || '[]'); return a.indexOf(k) >= 0; } catch (e) { return false; }
+  }
+  function markFired(k) {
+    try {
+      var a = JSON.parse(localStorage.getItem(firedKey()) || '[]');
+      a.push(k); a = a.slice(-80);
+      localStorage.setItem(firedKey(), JSON.stringify(a));
+    } catch (e) {}
+  }
+  function schedule() { checkDue(); }
+
+  /* verifica a cada 30s quais avisos estão vencendo */
+  function checkDue() {
+    if (!state.settings.notify || permState() !== 'granted') return;
+    var now = new Date(), nowMs = now.getTime();
+    var off = (+state.settings.offset || 0) * 60000;
+    state.shifts.forEach(function (s) {
+      var at = nextOccurrence(s, new Date(nowMs - 60000)); // pega também o que começou agora
+      if (!at) return;
+      var stamp = at.getFullYear() + (at.getMonth() + 1) + at.getDate() + s.start + s.id;
+
+      var kLead = 'lead:' + stamp;
+      if (nowMs >= at.getTime() - off && nowMs < at.getTime() && !hasFired(kLead)) {
+        fire('Turno em ' + state.settings.offset + ' min', label(s) + ' começa às ' + s.start + '. ' + (s.note || ''), kLead);
+        markFired(kLead);
+      }
+      var kStart = 'start:' + stamp;
+      if (state.settings.startAlert && nowMs >= at.getTime() && nowMs < at.getTime() + 5 * 60000 && !hasFired(kStart)) {
+        fire('Turno começando agora', label(s) + ' — de ' + s.start + ' até ' + s.end + '.', kStart);
+        markFired(kStart);
+      }
+    });
+  }
+
+  /* ---------- exportar / importar ---------- */
+  $('btnExport').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify({ app: 'EscalaAI', version: 1, at: new Date().toISOString(), shifts: state.shifts, settings: state.settings }, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'escalaai-backup.json';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    toast('Backup gerado.');
+  });
+  $('btnImport').addEventListener('click', function () { $('fileImport').click(); });
+  $('fileImport').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var d = JSON.parse(r.result);
+        var list = Array.isArray(d) ? d : (d.shifts || []);
+        list = list.filter(isValidShift).map(function (s) { s.id = s.id || uid(); return s; });
+        if (!list.length) { toast('Arquivo sem turnos válidos.'); return; }
+        state.shifts = list; save(); renderAll(); toast('Escala importada (' + list.length + ' turnos).');
+      } catch (err) { toast('Arquivo inválido.'); }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  });
+  $('btnClear').addEventListener('click', function () {
+    if (!confirm('Apagar TODOS os turnos salvos neste aparelho?')) return;
+    state.shifts = []; save(); renderAll(); toast('Tudo apagado.');
+  });
+
+  /* ---------- exemplo ---------- */
+  $('btnSample').addEventListener('click', function () {
+    var sample = [
+      { day: 1, start: '07:00', end: '13:00', label: 'Turno A · Enfermaria' },
+      { day: 2, start: '07:00', end: '13:00', label: 'Turno A · Enfermaria' },
+      { day: 3, start: '13:00', end: '19:00', label: 'Turno B · Plantão' },
+      { day: 4, start: '07:00', end: '19:00', label: 'Plantão 12h' },
+      { day: 5, start: '19:00,', end: '01:00', label: 'Noturno' }
+    ];
+    sample.forEach(function (s) { s.start = s.start.replace(/[^\d:]/g, ''); s.id = uid(); });
+    state.shifts = sample.filter(isValidShift); save(); renderAll(); toast('Semana de exemplo carregada.');
+  });
+  $('btnAddFirst').addEventListener('click', function () { openSheet(null); });
+
+  /* ---------- PWA: service worker + instalação ---------- */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').then(function () { checkDue(); }).catch(function () {});
+    });
+  }
+  var deferred = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferred = e;
+    var b = $('btnInstall'); if (b) { b.hidden = false; }
+  });
+  $('btnInstall').addEventListener('click', function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function () { deferred = null; $('btnInstall').hidden = true; });
+  });
+  window.addEventListener('appinstalled', function () { toast('EscalaAI instalado! 🎉'); });
+
+  /* ---------- eventos gerais ---------- */
+  $('themeBtn').addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    setTheme(dark ? 'light' : 'dark');
+  });
+  document.querySelectorAll('#segTheme button').forEach(function (b) {
+    b.addEventListener('click', function () { setTheme(b.dataset.mode); });
+  });
+  document.querySelectorAll('#tabbar button').forEach(function (b) {
+    b.addEventListener('click', function () { showTab(b.dataset.view); });
+  });
+  $('fabAdd').addEventListener('click', function () { openSheet(null); });
+  document.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', closeSheet);
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { tickClock(); checkDue(); renderNextPill(); } });
+
+  /* ---------- init ---------- */
+  function renderAll() { renderWeek(); renderShifts(); renderPerm(); renderNextPill(); }
+  load();
+  fillDays();
+  applyTheme();
+  renderAll();
+  tickClock();
+  setInterval(tickClock, 1000);
+  setInterval(checkDue, 30000);
+  setTimeout(checkDue, 3000);
+  var q = new URLSearchParams(location.search);
+  if (q.get('action') === 'new') setTimeout(function () { openSheet(null); }, 400);
+  if (q.get('view')) showTab(q.get('view'));
+})();
+
+</script>
+</body>
+</html>
